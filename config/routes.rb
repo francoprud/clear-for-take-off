@@ -3,8 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :weathers, only: [] do
         collection do
-          get :forecast
-          get :aviation_weather
+          get :probability
         end
       end
     end

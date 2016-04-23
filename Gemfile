@@ -8,10 +8,10 @@ gem 'rails', '4.2.5'
 gem 'pg'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
-# HTTParty gem
-gem 'httparty'
 # Bluemix integration
 gem 'cf-autoconfig', '~> 0.2.1'
+# HTTP easy requests
+gem 'httparty'
 
 group :development, :test do
   gem 'byebug'

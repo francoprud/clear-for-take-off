@@ -148,8 +148,8 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
-  httparty
   cf-autoconfig (~> 0.2.1)
+  httparty
   jbuilder (~> 2.0)
   pg
   rails (= 4.2.5)

@@ -10,6 +10,8 @@ gem 'pg'
 gem 'jbuilder', '~> 2.0'
 # HTTParty gem
 gem 'httparty'
+# Bluemix integration
+gem 'cf-autoconfig', '~> 0.2.1'
 
 group :development, :test do
   gem 'byebug'
@@ -24,4 +26,8 @@ group :test do
   gem 'rspec-rails', '~> 3.0'
   gem 'shoulda', '~> 3.5'
   gem 'shoulda-matchers', '~> 2.0'
+end
+
+group :production do
+  gem 'rails_12factor'
 end

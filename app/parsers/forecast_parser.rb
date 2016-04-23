@@ -1,5 +1,5 @@
 class ForecastParser
-  require 'date_helper'
+  include DateHelper
 
   BASE_URL = 'https://api.forecast.io/forecast/74eab9bb995b47b2f881d969f05e5e3a/'
 

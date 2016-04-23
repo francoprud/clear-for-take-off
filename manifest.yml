@@ -1,0 +1,11 @@
+applications:
+- path: .
+  memory: 2048M
+  instances: 1
+  domain: mybluemix.net
+  name: prudi
+  host: prudi
+  disk_quota: 1024M
+  command: bundle exec rake db:migrate && bundle exec rails s -p $PORT
+  services:
+    - postgres-cfto

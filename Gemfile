@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.3.0'
+ruby '2.2.2'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.5'
@@ -8,6 +8,8 @@ gem 'rails', '4.2.5'
 gem 'pg'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
+# Bluemix integration
+gem 'cf-autoconfig', '~> 0.2.1'
 
 group :development, :test do
   gem 'byebug'
@@ -22,4 +24,8 @@ group :test do
   gem 'rspec-rails', '~> 3.0'
   gem 'shoulda', '~> 3.5'
   gem 'shoulda-matchers', '~> 2.0'
+end
+
+group :production do
+  gem 'rails_12factor'
 end

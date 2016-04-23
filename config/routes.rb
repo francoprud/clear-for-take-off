@@ -4,6 +4,7 @@ Rails.application.routes.draw do
       resources :weathers, only: [] do
         collection do
           get :forecast
+          get :aviation_weather
         end
       end
     end

@@ -1,6 +1,6 @@
 module Api::V1::AirportsHelper
 
-  def sigmets_by_airport(origin,destination)
+  def sigmets_by_airports(origin,destination)
     if origin == 'KATL' && destination == 'KPHL' || origin == 'KPHL' && destination == 'KATL'
       route_from_atlanta_to_philli
     else
@@ -48,15 +48,13 @@ module Api::V1::AirportsHelper
     }
   end
 
-  #TODO: Set the correct station codes
   def airports_aviation_weather_codes
     {
-
-      "KJFK" => "KORD",
-      "KEWR" => "KLGA",
-      "KPHL" => "KORD",
-      "KSFO" => "KORD",
-      "KLGA" => "KORD",
+      "KJFK" => "KJFK",
+      "KEWR" => "KEWR",
+      "KPHL" => "KPHL",
+      "KSFO" => "KSFO",
+      "KLGA" => "KLGA",
       "KORD" => "KORD",
       "KOKC" => "KOKC",
       "KATL" => "KATL"
@@ -64,7 +62,7 @@ module Api::V1::AirportsHelper
   end
 
   def route_from_atlanta_to_philli
-    []
+    ['KSPA', 'KGSO', 'KGVE', 'KPHL']
     #{ "KATL" => [33.6367,-84.42786], # KATL
     #  "SPA"  => [35.03363,-81.92701],
     #  "BYJAC" => [35.95752,-80.15079],
@@ -73,8 +71,6 @@ module Api::V1::AirportsHelper
     #  "GVE" => [38.0136,-78.15302],
     #  "KPHL" => [39.87225,-75.24086]
     # }
-  end
-
   end
 
 end

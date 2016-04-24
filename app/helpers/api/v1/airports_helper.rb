@@ -1,13 +1,12 @@
-module Api::V1::WeatherHelper
-  def airport_by(latitude,longitude)
-  end
+module Api::V1::AirportsHelper
 
   def coordinates_by(airport_code)
+    byebug
     airports_coordinates[airport_code]
   end
 
   def aviation_wheather_code_by(airport_code)
-    airports_aviationwhather_codes[airport_code]
+    airports_aviation_weather_codes[airport_code]
   end
 
   def airport_tranks_by(airport_code)

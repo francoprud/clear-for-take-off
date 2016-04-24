@@ -1,5 +1,6 @@
 class ForecastParser
   include DateHelper
+  include Api::V1::AirportsHelper
 
   BASE_URL = 'https://api.forecast.io/forecast/74eab9bb995b47b2f881d969f05e5e3a/'
 
@@ -30,6 +31,7 @@ class ForecastParser
   end
 
   def build_url_params
-    "#{params[:lat]},#{params[:long]},#{time}"
+    coordinates = coordinates_by(params[:origin])
+    "#{coordinates['lat']},#{coordinates['long']},#{time}"
   end
 end

@@ -15,6 +15,8 @@ class Api::V1::WeathersController < ApplicationController
 
 
     data2 = AviationWeatherParser.new(params).parse_information
+
+    data3 = SigmetParser.new(params).parse_information
     render json: data, status: :ok
 
   end

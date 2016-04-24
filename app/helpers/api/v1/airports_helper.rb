@@ -42,7 +42,7 @@ module Api::V1::AirportsHelper
   def airports_aviation_weather_codes
     {
       "KJFK" => "KORD",
-      "KEWR" => "KORD",
+      "KEWR" => "KDEN",
       "KPHL" => "KORD",
       "KSFO" => "KORD",
       "KLGA" => "KORD",

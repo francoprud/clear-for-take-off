@@ -1,43 +1,35 @@
 class AviationWeatherParser
   include DateHelper
   include Api::V1::AirportsHelper
-  attr_reader :params, :time, :parsed_response
+  attr_reader :params, :airport_code, :time, :parsed_response
 
-  def initialize(parameters)
-    @params = parameters
-    byebug
-    @time = date_in_seconds_from(parameters[:date], parameters[:hour])
+  BASE_URL = 'http://www.aviationweather.gov/adds/dataserver_current/httpparam?'
+
+  def initialize(params, airport_code, time)
+    @params = params
+    @airport_code = airport_code
+    @time = time
   end
 
   def parse_information
-    url = 'http://www.aviationweather.gov/adds/dataserver_current/httpparam?'
-    url << 'dataSource=tafs'
-    url << '&requestType=retrieve'
-    url << '&format=xml'
-    url << '&hoursBeforeNow=24'
-    url << '&mostRecent=true'
-    url << '&timeType=issue'
-    url << '&stationString='
-    byebug
-    url_for_origin = url +  (aviation_wheather_code_by @params['origin'])
-    url_for_destination = url + (aviation_wheather_code_by @params['destination'])
-    @origin_parsed_response = ::HTTParty.get(url_for_origin).parsed_response
-    @destination_parsed_response = ::HTTParty.get(url_for_destination).parsed_response
+    url = "#{BASE_URL}dataSource=tafs&requestType=retrieve&format=xml&hoursBeforeNow=24&mostRecent=true&timeType=issue&stationString=#{aviation_weather_code_by(airport_code)}"
+    @parsed_response = ::HTTParty.get(url).parsed_response
     parse_response
   end
 
   private
 
   def parse_response
-    root = {} #parsed_response['currently']
-    #{
-    #  wind_speed: root['windSpeed'],
-    #  precipitations: root['precipProbability'] != 0 ? 1 : 0,
-    #  visibility: root['visibility'],
-    #  humidity: root['humidity'],
-    #  wind_bearing: root['windBearing'],
-    #  temperature: root['temperature']
-    #}
+    forecasts = parsed_response['response']['data']['TAF']['forecast']
+    forecast = forecasts.select { |f| Time.parse(f["fcst_time_from"]).to_i < utc_time && utc_time < Time.parse(f["fcst_time_to"]).to_i }.first
+    {
+      'wind_speed' => forecast['wind_speed_kt'].to_f,
+      'visibility' => forecast['visibility_statute_mi'].to_f,
+      'wind_bearing' => forecast['wind_dir_degrees'].to_f
+    }
   end
 
+  def utc_time
+    @time - 60 * 60 * 3
+  end
 end

@@ -4,7 +4,7 @@ module Api::V1::AirportsHelper
     airports_coordinates[airport_code]
   end
 
-  def aviation_wheather_code_by(airport_code)
+  def aviation_weather_code_by(airport_code)
     airports_aviation_weather_codes[airport_code]
   end
 
@@ -40,7 +40,7 @@ module Api::V1::AirportsHelper
   def airports_aviation_weather_codes
     {
       "KJFK" => "KORD",
-      "KEWR" => "KORD",
+      "KEWR" => "KLGA",
       "KPHL" => "KORD",
       "KSFO" => "KORD",
       "KLGA" => "KORD",

@@ -6,10 +6,10 @@ class ForecastParser
 
   attr_reader :params, :airport_code, :time, :parsed_response
 
-  def initialize(params, airport_code)
+  def initialize(params, airport_code, time)
     @params = params
     @airport_code = airport_code
-    @time = date_in_seconds_from(params[:date], params[:hour])
+    @time = time
   end
 
   def parse_information

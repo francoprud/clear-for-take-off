@@ -4,13 +4,14 @@ class Api::V1::WeathersController < ApplicationController
 
   def probability
     time = date_in_seconds_from(params[:date], params[:hour])
+    flight_time = calculate_flight_time.round
     if time <= (Time.now + 6.hours).to_i
       # SIGMET
     elsif time <= (Time.now + 24.hours).to_i
       # TAF
     else
-      data_origin = ForecastParser.new(params, params[:origin]).parse_information
-      data_destiny = ForecastParser.new(params, params[:destiny]).parse_information
+      data_origin = ForecastParser.new(params, params[:origin], time).parse_information
+      data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
       prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
       prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
       worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
@@ -40,6 +41,28 @@ class Api::V1::WeathersController < ApplicationController
   end
 
   private
+
+  def calculate_flight_time
+    calculate_airports_distances(params[:origin], params[:destiny]) / 225 # its the average plane speed
+  end
+
+  def calculate_airports_distances(airport1_code, airport2_code)
+    air1 = coordinates_by(airport1_code)
+    air2 = coordinates_by(airport2_code)
+    calculate_distances(air1['lat'], air1['long'], air2['lat'], air2['long'])
+  end
+
+  def calculate_distances(lat1, long1, lat2, long2)
+    earth_radius = 6371000 # in meters
+    lat1_rad = lat1 * Math::PI / 180
+    lat2_rad = lat2 * Math::PI / 180
+    dlat = (lat2 - lat1) * Math::PI / 180
+    dlong = (long2 - long1) * Math::PI / 180
+
+    a = (Math.sin(dlat/2.0) ** 2) + (Math.sin(dlong/2.0) ** 2) * Math.cos(lat1_rad) * Math.cos(lat2_rad)
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    earth_radius * c
+  end
 
   def calculate_worst_probability(origin, destiny)
     if origin[0] >= destiny[0]
@@ -94,7 +117,7 @@ class Api::V1::WeathersController < ApplicationController
   def calculate_probability(data, track)
     reasons = []
     max_probability = 0
-    wind = (data['wind_speed'] * Math.sin(track - data['wind_bearing'] * Math::PI / 180)).abs
+    wind = (data['wind_speed'] * Math.sin((track - data['wind_bearing']) * Math::PI / 180)).abs
 
     # Rule 1
     if (data['precipitations'] == 0 && wind < 25)

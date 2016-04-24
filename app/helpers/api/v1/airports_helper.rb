@@ -25,7 +25,6 @@ module Api::V1::AirportsHelper
     }
   end
 
-
   def airports_coordinates
     {
       'KJFK' => { 'lat' => 40.63972, 'long' => -73.77889 },
@@ -41,7 +40,7 @@ module Api::V1::AirportsHelper
   def airports_aviation_weather_codes
     {
       "KJFK" => "KORD",
-      "KEWR" => "KDEN",
+      "KEWR" => "KORD",
       "KPHL" => "KORD",
       "KSFO" => "KORD",
       "KLGA" => "KORD",

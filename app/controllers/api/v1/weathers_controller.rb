@@ -7,6 +7,20 @@ class Api::V1::WeathersController < ApplicationController
     flight_time = calculate_flight_time.round
     if time <= (Time.now + 6.hours).to_i
       # SIGMET
+      data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
+      data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
+
+      data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+      data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+
+      data_origin_merge = data_merge(data_origin_more, data_origin)
+      data_destiny_merge = data_merge(data_destiny_more, data_destiny)
+
+      prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
+      prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
+      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+      # Missing SIGMET
+      render json: worst_prob, status: :ok
     elsif time <= (Time.now + 24.hours).to_i
       # TAF
       data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
@@ -141,7 +155,7 @@ class Api::V1::WeathersController < ApplicationController
     reasons = []
     max_probability = 0
     wind = (data['wind_speed'] * Math.sin((track - data['wind_bearing']) * Math::PI / 180)).abs
-
+    byebug
     # Rule 1
     if (data['precipitations'] == 0 && wind < 25)
       if (max_probability <= 1)
@@ -203,7 +217,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 7
-    if (data['visibility'] < 150)
+    if (data['visibility'] < (meters_to_miles 150))
       if (max_probability <= 5)
         reasons = [] if max_probability < 5
         reasons << 'low visibility'
@@ -212,7 +226,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 8
-    if (data['visibility'] >= 150 && data['visibility'] < 175 && wind < 25)
+    if (data['visibility'] >= (meters_to_miles 150) && data['visibility'] < (meters_to_miles 175) && wind < 25)
       if (max_probability <= 3)
         reasons = [] if max_probability < 3
         reasons << 'medium visibility'
@@ -222,7 +236,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 9
-    if (data['visibility'] >= 150 && data['visibility'] < 175 && wind >= 25 && wind < 34)
+    if (data['visibility'] >= (meters_to_miles 150) && data['visibility'] < (meters_to_miles 175) && wind >= 25 && wind < 34)
       if (max_probability <= 4)
         reasons = [] if max_probability < 4
         reasons << 'medium visibility'
@@ -232,7 +246,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 10
-    if (data['visibility'] >= 175 && data['visibility'] < 200 && wind < 25)
+    if (data['visibility'] >= (meters_to_miles 175) && data['visibility'] < (meters_to_miles 200) && wind < 25)
       if (max_probability <= 2)
         reasons = [] if max_probability < 2
         reasons << 'medium visibility'
@@ -242,7 +256,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 11
-    if (data['visibility'] >= 175 && data['visibility'] < 200 && wind >= 25 && wind < 34)
+    if (data['visibility'] >= (meters_to_miles 175) && data['visibility'] < (meters_to_miles 200) && wind >= 25 && wind < 34)
       if (max_probability <= 3)
         reasons = [] if max_probability < 3
         reasons << 'medium visibility'
@@ -252,7 +266,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 12
-    if (data['visibility'] >= 200)
+    if (data['visibility'] >= (meters_to_miles 200))
       if (max_probability <= 1)
         reasons = [] if max_probability < 1
         reasons << 'high visibility'
@@ -295,5 +309,9 @@ class Api::V1::WeathersController < ApplicationController
       probability: max_probability,
       reasons: reasons.uniq
     }
+  end
+
+  def meters_to_miles(meters)
+    meters*0.000621371
   end
 end

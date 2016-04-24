@@ -21,7 +21,8 @@ module Api::V1::AirportsHelper
       'KPHL' => [80, 90, 90, 170],
       'KSFO' => [10, 10, 100, 100],
       'KLGA' => [40, 130],
-      'KORD' => [40, 40, 90, 90, 100, 140, 140, 180]
+      'KORD' => [40, 40, 90, 90, 100, 140, 140, 180],
+      'KOKC' => [130, 170, 170, 180]
     }
   end
 
@@ -32,7 +33,8 @@ module Api::V1::AirportsHelper
       'KPHL' => { 'lat' => 39.87194, 'long' => -75.24111 },
       'KSFO' => { 'lat' => 37.61889, 'long' => -122.375 },
       'KLGA' => { 'lat' => 40.77722, 'long' => -73.8725 },
-      'KORD' => { 'lat' => 41.97861, 'long' => -87.90472 }
+      'KORD' => { 'lat' => 41.97861, 'long' => -87.90472 },
+      'KOKC'=> {'lat' => 35.38333,'long' => -97.6}
     }
   end
 
@@ -44,7 +46,8 @@ module Api::V1::AirportsHelper
       "KPHL" => "KORD",
       "KSFO" => "KORD",
       "KLGA" => "KORD",
-      "KORD" => "KORD"
+      "KORD" => "KORD",
+      "KOKC" => "KOKC"
     }
   end
 end

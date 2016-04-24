@@ -49,27 +49,6 @@ class Api::V1::WeathersController < ApplicationController
 
       render json: worst_prob, status: :ok
     end
-
-    # data2 = AviationWeatherParser.new(params).parse_information
-    # data3 = SigmetParser.new(params).parse_information
-    # render json: data, status: :ok
-  end
-
-  # date: yyyymmdd (format)
-  # hour: hhmm (format)
-  # airport_code: KJFK (example)
-  def aviation_weather#(airport_origin_code, airport_destination_code, date, hour)
-    #wired params for testing
-    testData = {
-      airport_origin_code: 'KJFK',
-      airport_destination_code: 'KORD',
-      date: '20160424',
-      hour: '0325'
-    }
-    #end of wired params
-
-    data = AviationWeatherParser.new(testData).parse_information
-    render json: data, status: :ok
   end
 
   private
@@ -80,7 +59,7 @@ class Api::V1::WeathersController < ApplicationController
   end
 
   def calculate_flight_time
-    calculate_airports_distances(params[:origin], params[:destiny]) / 225 # its the average plane speed
+    calculate_airports_distances(params[:origin], params[:destiny]) / 200 # its the average plane speed
   end
 
   def calculate_airports_distances(airport1_code, airport2_code)
@@ -106,13 +85,13 @@ class Api::V1::WeathersController < ApplicationController
       {
         'probability' => origin[0],
         'source' => 'origin',
-        'reasons' => convert_into_sentence(origin[1])
+        'reasons' => (origin[0] == 1 || origin[0] == 2) ? 'No extreme weather conditions' : convert_into_sentence(origin[1])
       }
     else
       {
         'probability' => destiny[0],
         'source' => 'destiny',
-        'reasons' => convert_into_sentence(destiny[1])
+        'reasons' => (destiny[0] == 1 || destiny[0] == 2) ? 'No extreme weather conditions' : convert_into_sentence(destiny[1])
       }
     end
   end
@@ -128,7 +107,7 @@ class Api::V1::WeathersController < ApplicationController
         ans += " and #{v}"
       end
     end
-    "#{ans}."
+    "#{ans}"
   end
 
   def calculate_all_airport_tracks_probability(data, airport_code)
@@ -155,13 +134,13 @@ class Api::V1::WeathersController < ApplicationController
     reasons = []
     max_probability = 0
     wind = (data['wind_speed'] * Math.sin((track - data['wind_bearing']) * Math::PI / 180)).abs
-    byebug
+
     # Rule 1
     if (data['precipitations'] == 0 && wind < 25)
       if (max_probability <= 1)
         reasons = [] if max_probability < 1
         reasons << 'no precipitations'
-        reasons << 'slow winds'
+        reasons << 'some winds'
         max_probability = 1
       end
     end
@@ -171,7 +150,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 2)
         reasons = [] if max_probability < 2
         reasons << 'no precipitations'
-        reasons << 'fast winds'
+        reasons << 'extreme winds'
         max_probability = 2
       end
     end
@@ -201,7 +180,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 3)
         reasons = [] if max_probability < 3
         reasons << 'precipitations'
-        reasons << 'medium winds'
+        reasons << 'some winds'
         max_probability = 3
       end
     end
@@ -211,7 +190,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 5)
         reasons = [] if max_probability < 5
         reasons << 'precipitations'
-        reasons << 'fast winds'
+        reasons << 'extreme winds'
         max_probability = 5
       end
     end
@@ -230,7 +209,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 3)
         reasons = [] if max_probability < 3
         reasons << 'medium visibility'
-        reasons << 'slow winds'
+        reasons << 'some winds'
         max_probability = 3
       end
     end
@@ -240,7 +219,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 4)
         reasons = [] if max_probability < 4
         reasons << 'medium visibility'
-        reasons << 'fast winds'
+        reasons << 'some winds'
         max_probability = 4
       end
     end
@@ -260,7 +239,7 @@ class Api::V1::WeathersController < ApplicationController
       if (max_probability <= 3)
         reasons = [] if max_probability < 3
         reasons << 'medium visibility'
-        reasons << 'fast winds'
+        reasons << 'some winds'
         max_probability = 3
       end
     end

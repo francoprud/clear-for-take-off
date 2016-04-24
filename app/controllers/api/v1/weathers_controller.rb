@@ -1,19 +1,38 @@
 class Api::V1::WeathersController < ApplicationController
   def probability
     data = ForecastParser.new(params).parse_information
+
+
+
+    #wired params for testing
+    #testData = {
+    #  airport_origin_code: 'KJFK',
+    #  airport_destination_code: 'KORD',
+    #  date: '20160424',
+    #  hour: '0325'
+    #}
+    #end of wired params
+
+
+    data2 = AviationWeatherParser.new(params).parse_information
     render json: data, status: :ok
+
   end
 
   # date: yyyymmdd (format)
   # hour: hhmm (format)
   # airport_code: KJFK (example)
-  def aviation_weather(airport_code, date, hour)
-    #url = 'http://www.aviationweather.gov/adds/metars/?'
-    #url << 'station_ids=' << (aviation_wheather_code_by airport_code)
-    #response = ::HTTParty.get(url + '&std_trans=standard&chk_metars=on&hoursStr=most+recent+only&chk_tafs=on&format=xml&submitmet=Submit').parsed_response
-    #byebug
+  def aviation_weather#(airport_origin_code, airport_destination_code, date, hour)
+    #wired params for testing
+    testData = {
+      airport_origin_code: 'KJFK',
+      airport_destination_code: 'KORD',
+      date: '20160424',
+      hour: '0325'
+    }
+    #end of wired params
 
-    # WORK WITH response DATA
-    render json: {}, status: :ok
+    data = AviationWeatherParser.new(testData).parse_information
+    render json: data, status: :ok
   end
 end

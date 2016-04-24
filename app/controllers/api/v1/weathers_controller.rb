@@ -1,18 +1,25 @@
 class Api::V1::WeathersController < ApplicationController
   include Api::V1::AirportsHelper
+  include DateHelper
 
   def probability
-    data_origin = ForecastParser.new(params, params[:origin]).parse_information
-    data_destiny = ForecastParser.new(params, params[:destiny]).parse_information
-    prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
-    prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
-    worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+    time = date_in_seconds_from(params[:date], params[:hour])
+    if time <= (Time.now + 6.hours).to_i
+      # SIGMET
+    elsif time <= (Time.now + 24.hours).to_i
+      # TAF
+    else
+      data_origin = ForecastParser.new(params, params[:origin]).parse_information
+      data_destiny = ForecastParser.new(params, params[:destiny]).parse_information
+      prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
+      prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
+      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+      render json: worst_prob, status: :ok
+    end
 
     # data2 = AviationWeatherParser.new(params).parse_information
     # data3 = SigmetParser.new(params).parse_information
     # render json: data, status: :ok
-
-    render json: worst_prob, status: :ok
   end
 
   # date: yyyymmdd (format)

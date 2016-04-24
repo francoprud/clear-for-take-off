@@ -5,7 +5,6 @@ class AviationWeatherParser
 
   def initialize(parameters)
     @params = parameters
-    byebug
     @time = date_in_seconds_from(parameters[:date], parameters[:hour])
   end
 
@@ -18,7 +17,6 @@ class AviationWeatherParser
     url << '&mostRecent=true'
     url << '&timeType=issue'
     url << '&stationString='
-    byebug
     url_for_origin = url +  (aviation_wheather_code_by @params['origin'])
     url_for_destination = url + (aviation_wheather_code_by @params['destination'])
     @origin_parsed_response = ::HTTParty.get(url_for_origin).parsed_response
@@ -29,15 +27,27 @@ class AviationWeatherParser
   private
 
   def parse_response
-    root = {} #parsed_response['currently']
-    #{
-    #  wind_speed: root['windSpeed'],
-    #  precipitations: root['precipProbability'] != 0 ? 1 : 0,
-    #  visibility: root['visibility'],
-    #  humidity: root['humidity'],
-    #  wind_bearing: root['windBearing'],
-    #  temperature: root['temperature']
-    #}
+    all_origin_forecast = @origin_parsed_response["response"]["data"]["TAF"]["forecast"]
+    all_destination_forecast = @origin_parsed_response["response"]["data"]["TAF"]["forecast"]
+    origin_forecast = all_origin_forecast.select { |f| Time.parse(f["fcst_time_from"]).to_i < utc_time && utc_time < Time.parse(f["fcst_time_to"]).to_i }.first
+    destination_forecast = all_destination_forecast.select { |f| Time.parse(f["fcst_time_from"]).to_i < utc_time && utc_time < Time.parse(f["fcst_time_to"]).to_i }.first
+    byebug
+    responses = {
+      "origin_response" => {
+        wind_speed: origin_forecast['wind_speed_kt'],
+        visibility: origin_forecast['visibility_statute_mi'],
+        wind_bearing: origin_forecast['wind_dir_degrees'],
+      },
+      "destination_response" => {
+          wind_speed: destination_forecast['wind_speed_kt'],
+          visibility: destination_forecast['visibility_statute_mi'],
+          wind_bearing: destination_forecast['wind_dir_degrees'],
+        }
+      }
   end
+
+def utc_time
+  @time - 60*60*3
+end
 
 end

@@ -1,7 +1,6 @@
 module Api::V1::AirportsHelper
 
   def coordinates_by(airport_code)
-    byebug
     airports_coordinates[airport_code]
   end
 

@@ -15,6 +15,7 @@ class Api::V1::WeathersController < ApplicationController
 
 
     data2 = AviationWeatherParser.new(params).parse_information
+    byebug
     render json: data, status: :ok
 
   end

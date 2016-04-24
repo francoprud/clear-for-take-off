@@ -7,19 +7,23 @@ class Api::V1::WeathersController < ApplicationController
     flight_time = calculate_flight_time.round
     if time <= (Time.now + 6.hours).to_i
       # SIGMET
-      data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
-      data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
+      data_sigmet = SigmetParser.new(params[:origin], time).parse_information
+      worst_prob = calculate_sigmet_probability(data_sigmet)
 
-      data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
-      data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+      unless worst_prob.present?
+        data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
+        data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
 
-      data_origin_merge = data_merge(data_origin_more, data_origin)
-      data_destiny_merge = data_merge(data_destiny_more, data_destiny)
+        data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+        data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
 
-      prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
-      prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
-      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
-      # Missing SIGMET
+        data_origin_merge = data_merge(data_origin_more, data_origin)
+        data_destiny_merge = data_merge(data_destiny_more, data_destiny)
+
+        prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
+        prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
+        worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+      end
       render json: worst_prob, status: :ok
     elsif time <= (Time.now + 24.hours).to_i
       # TAF
@@ -51,7 +55,20 @@ class Api::V1::WeathersController < ApplicationController
     end
   end
 
+
   private
+
+  def calculate_sigmet_probability(data)
+    if data['count'] > 0
+      {
+        'probability' => 5,
+        'source' => 'origin',
+        'reasons' => 'Extreme conditions around the airport area (SIGMET)'
+      }
+    else
+      nil
+    end
+  end
 
   # Overrides data1 values
   def data_merge(data1, data2)

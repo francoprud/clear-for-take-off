@@ -13,6 +13,8 @@ gem 'cf-autoconfig', '~> 0.2.1'
 # HTTP easy requests
 gem 'httparty'
 
+gem 'rack-cors', require: 'rack/cors'
+
 group :development, :test do
   gem 'byebug'
 end

@@ -1,7 +1,6 @@
 module Api::V1::AirportsHelper
 
   def coordinates_by(airport_code)
-    byebug
     airports_coordinates[airport_code]
   end
 
@@ -9,13 +8,13 @@ module Api::V1::AirportsHelper
     airports_aviation_weather_codes[airport_code]
   end
 
-  def airport_tranks_by(airport_code)
+  def airport_tracks_by(airport_code)
     landing_tracks_by_airport[airport_code]
   end
 
   private
 
-  def landing_tracks_by_airport(airpot_code)
+  def landing_tracks_by_airport
     {
       'KJFK' => [44, 44, 133.9, 133.9],
       'KEWR' => [40, 40, 110],

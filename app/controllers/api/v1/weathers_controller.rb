@@ -9,12 +9,30 @@ class Api::V1::WeathersController < ApplicationController
       # SIGMET
     elsif time <= (Time.now + 24.hours).to_i
       # TAF
+      data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
+      data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
+      if (flight_time + time) <= (Time.now + 24.hours).to_i
+        data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+      else
+        data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+      end
+      data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+
+      data_origin_merge = data_merge(data_origin_more, data_origin)
+      data_destiny_merge = data_merge(data_destiny_more, data_destiny)
+
+      prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
+      prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
+      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+
+      render json: worst_prob, status: :ok
     else
       data_origin = ForecastParser.new(params, params[:origin], time).parse_information
       data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
       prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
       prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
       worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+
       render json: worst_prob, status: :ok
     end
 
@@ -41,6 +59,11 @@ class Api::V1::WeathersController < ApplicationController
   end
 
   private
+
+  # Overrides data1 values
+  def data_merge(data1, data2)
+    data1.merge(data2)
+  end
 
   def calculate_flight_time
     calculate_airports_distances(params[:origin], params[:destiny]) / 225 # its the average plane speed
@@ -115,6 +138,7 @@ class Api::V1::WeathersController < ApplicationController
   end
 
   def calculate_probability(data, track)
+    byebug
     reasons = []
     max_probability = 0
     wind = (data['wind_speed'] * Math.sin((track - data['wind_bearing']) * Math::PI / 180)).abs

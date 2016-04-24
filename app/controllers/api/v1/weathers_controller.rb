@@ -1,24 +1,18 @@
 class Api::V1::WeathersController < ApplicationController
+  include Api::V1::AirportsHelper
+
   def probability
-    data = ForecastParser.new(params).parse_information
+    data_origin = ForecastParser.new(params, params[:origin]).parse_information
+    data_destiny = ForecastParser.new(params, params[:destiny]).parse_information
+    prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
+    prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
+    worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
 
+    # data2 = AviationWeatherParser.new(params).parse_information
+    # data3 = SigmetParser.new(params).parse_information
+    # render json: data, status: :ok
 
-
-    #wired params for testing
-    #testData = {
-    #  airport_origin_code: 'KJFK',
-    #  airport_destination_code: 'KORD',
-    #  date: '20160424',
-    #  hour: '0325'
-    #}
-    #end of wired params
-
-
-    data2 = AviationWeatherParser.new(params).parse_information
-
-    data3 = SigmetParser.new(params).parse_information
-    render json: data, status: :ok
-
+    render json: worst_prob, status: :ok
   end
 
   # date: yyyymmdd (format)
@@ -40,11 +34,60 @@ class Api::V1::WeathersController < ApplicationController
 
   private
 
-  def calculate_probability(data)
+  def calculate_worst_probability(origin, destiny)
+    if origin[0] >= destiny[0]
+      {
+        'probability' => origin[0],
+        'source' => 'origin',
+        'reasons' => convert_into_sentence(origin[1])
+      }
+    else
+      {
+        'probability' => destiny[0],
+        'source' => 'destiny',
+        'reasons' => convert_into_sentence(destiny[1])
+      }
+    end
+  end
+
+  def convert_into_sentence(reasons)
+    ans = ""
+    reasons.each_with_index do |v, i|
+      if i == 0
+        ans += v.capitalize
+      elsif i < reasons.count - 1
+        ans += ", #{v}"
+      else
+        ans += " and #{v}"
+      end
+    end
+    "#{ans}."
+  end
+
+  def calculate_all_airport_tracks_probability(data, airport_code)
+    responses = []
+    airport_tracks_by(params[:origin]).each do |track|
+      responses << calculate_probability(data, track)
+    end
+    sum = 0
+    responses.each { |p| sum += p[:probability] }
+    (sum / responses.count.to_f).round
+    max = 0
+    final_responses = []
+    responses.each do |response|
+      if (response[:probability] >= max)
+        final_responses = [] if response[:probability] > max
+        final_responses << response[:reasons]
+        max = response[:probability]
+      end
+    end
+    [max, final_responses.flatten.uniq]
+  end
+
+  def calculate_probability(data, track)
     reasons = []
     max_probability = 0
-    # wind = (data['wind_speed'] * Math.sin(data['wind_bearing'] * )).abs
-    wind = data['wind_speed'] # TODO: Calculate speed of wind with direction
+    wind = (data['wind_speed'] * Math.sin(track - data['wind_bearing'] * Math::PI / 180)).abs
 
     # Rule 1
     if (data['precipitations'] == 0 && wind < 25)
@@ -165,7 +208,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 13
-    if (data['humidity'] == 100 && data['precipitations'] == 0 && data['temperature'] >= -5 && data['temperature'] <= 5)
+    if (data['humidity'] == 100 && data['precipitations'] == 0 && data['temperature'] >= 23 && data['temperature'] <= 41)
       if (max_probability <= 4)
         reasons = [] if max_probability < 4
         reasons << 'high humidity'
@@ -186,7 +229,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 15
-    if (data['humidity'] >= 80 && data['humidity'] < 100 && data['temperature'] >= -5 && data['temperature'] <= 5)
+    if (data['humidity'] >= 80 && data['humidity'] < 100 && data['temperature'] >= 23 && data['temperature'] <= 41)
       if (max_probability <= 2)
         reasons = [] if max_probability < 2
         reasons << 'medium humidity'
@@ -197,7 +240,7 @@ class Api::V1::WeathersController < ApplicationController
 
     {
       probability: max_probability,
-      reasons: reasons.unique
+      reasons: reasons.uniq
     }
   end
 end

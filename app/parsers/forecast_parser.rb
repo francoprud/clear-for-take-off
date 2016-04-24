@@ -4,10 +4,11 @@ class ForecastParser
 
   BASE_URL = 'https://api.forecast.io/forecast/74eab9bb995b47b2f881d969f05e5e3a/'
 
-  attr_reader :params, :time, :parsed_response
+  attr_reader :params, :airport_code, :time, :parsed_response
 
-  def initialize(params)
+  def initialize(params, airport_code)
     @params = params
+    @airport_code = airport_code
     @time = date_in_seconds_from(params[:date], params[:hour])
   end
 
@@ -31,7 +32,7 @@ class ForecastParser
   end
 
   def build_url_params
-    coordinates = coordinates_by(params[:origin])
+    coordinates = coordinates_by(airport_code)
     "#{coordinates['lat']},#{coordinates['long']},#{time}"
   end
 end

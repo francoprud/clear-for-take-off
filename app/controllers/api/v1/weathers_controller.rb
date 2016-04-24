@@ -5,7 +5,7 @@ class Api::V1::WeathersController < ApplicationController
   def probability
     time = date_in_seconds_from(params[:date], params[:hour])
     flight_time = calculate_flight_time.round
-    if time <= (Time.now + 6.hours).to_i
+    if time <= (Time.now.utc + 6.hours).to_i
       # SIGMET
       data_sigmet = SigmetParser.new(params[:origin], time).parse_information
       worst_prob = calculate_sigmet_probability(data_sigmet)
@@ -25,11 +25,11 @@ class Api::V1::WeathersController < ApplicationController
         worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
       end
       render json: worst_prob, status: :ok
-    elsif time <= (Time.now + 24.hours).to_i
+    elsif time <= (Time.now.utc + 24.hours).to_i
       # TAF
       data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
       data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
-      if (flight_time + time) <= (Time.now + 24.hours).to_i
+      if (flight_time + time) <= (Time.now.utc + 24.hours).to_i
         data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
       else
         data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information

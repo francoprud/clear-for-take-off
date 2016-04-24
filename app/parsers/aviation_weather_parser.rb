@@ -21,15 +21,11 @@ class AviationWeatherParser
 
   def parse_response
     forecasts = parsed_response['response']['data']['TAF']['forecast']
-    forecast = forecasts.select { |f| Time.parse(f["fcst_time_from"]).to_i < utc_time && utc_time < Time.parse(f["fcst_time_to"]).to_i }.first
+    forecast = forecasts.select { |f| Time.parse(f["fcst_time_from"]).utc.to_i < time && time < Time.parse(f["fcst_time_to"]).utc.to_i }.first
     {
       'wind_speed' => forecast['wind_speed_kt'].to_f,
       'visibility' => forecast['visibility_statute_mi'].to_f,
       'wind_bearing' => forecast['wind_dir_degrees'].to_f
     }
-  end
-
-  def utc_time
-    @time - 60 * 60 * 3
   end
 end

@@ -21,12 +21,12 @@ class ForecastParser
   def parse_response
     root = parsed_response['currently']
     {
-      wind_speed: root['windSpeed'],
-      precipitations: root['precipProbability'] != 0 ? 1 : 0,
-      visibility: root['visibility'],
-      humidity: root['humidity'],
-      wind_bearing: root['windBearing'],
-      temperature: root['temperature']
+      'wind_speed' => root['windSpeed'],
+      'wind_bearing' => root['windBearing'],
+      'precipitations' => root['precipProbability'] != 0 ? 1 : 0,
+      'visibility' => root['visibility'],
+      'humidity' => root['humidity'] * 100,
+      'temperature' => root['temperature']
     }
   end
 

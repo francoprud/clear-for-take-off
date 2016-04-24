@@ -138,7 +138,6 @@ class Api::V1::WeathersController < ApplicationController
   end
 
   def calculate_probability(data, track)
-    byebug
     reasons = []
     max_probability = 0
     wind = (data['wind_speed'] * Math.sin((track - data['wind_bearing']) * Math::PI / 180)).abs

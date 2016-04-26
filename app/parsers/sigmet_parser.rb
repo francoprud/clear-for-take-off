@@ -1,7 +1,9 @@
 class SigmetParser
   include DateHelper
   include Api::V1::AirportsHelper
-  attr_reader :params, :time, :parsed_response
+  attr_reader :airport_code, :time, :sigmet_response
+
+  BASE_URL = 'https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=airsigmets&requestType=retrieve&format=xml'
 
   def initialize(airport_code, time)
     @airport_code = airport_code
@@ -9,39 +11,28 @@ class SigmetParser
   end
 
   def parse_information
-
-    airport_coordinates = coordinates_by @airport_code
-    url = 'https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=airsigmets&requestType=retrieve&format=xml'
-
-    url << '&minLat='
-    url << (airport_coordinates['lat'] - 0.5).to_s
-    url << '&minLon='
-    url << (airport_coordinates['long'] - 0.5).to_s
-    url << '&maxLat='
-    url << (airport_coordinates['lat'] + 0.5).to_s
-    url << '&maxLon='
-    url << (airport_coordinates['lat'] + 0.5).to_s
-    url << '&hoursBeforeNow='
-    url << valid_period.to_s
-
-    @sigmet_response = ::HTTParty.get(url).parsed_response
+    @sigmet_response = ::HTTParty.get(build_url).parsed_response
     parse_response
   end
 
   private
 
   def parse_response
-    severe_sigmets = @sigmet_response['response']['data']['AIRSIGMET'].select { |c| c['airsigmet_type'] == 'SIGMET' && c['hazard']['severity'] == 'SEV' }
-    hazard_count = severe_sigmets.count
-    hazard_names = severe_sigmets.map { |c| c['hazard']['type']}.uniq
-    {
-      'count' => hazard_count,
-      'names' => hazard_names
-    }
+    severe_sigmets = sigmet_response['response']['data']['AIRSIGMET'].any? { |s| s['airsigmet_type'] == 'SIGMET' && s['hazard']['severity'] == 'SEV' }
+    { 'sigmets' => severe_sigmets }
   end
 
   def valid_period
-    (@time - (@time - Time.new.utc.to_i).abs) *60 *60
+    (time - (time - Time.new.utc.to_i).abs) *60 *60
   end
 
+  def build_url
+    airport_coordinates = coordinates_by(airport_code)
+    url = BASE_URL
+    url += "&minLat=#{airport_coordinates['lat'] - 0.5}"
+    url += "&minLon=#{airport_coordinates['long'] - 0.5}"
+    url += "&maxLat=#{airport_coordinates['lat'] + 0.5}"
+    url += "&maxLon=#{airport_coordinates['lat'] + 0.5}"
+    url += "&hoursBeforeNow=#{valid_period}"
+  end
 end

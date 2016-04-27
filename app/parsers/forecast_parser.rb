@@ -28,8 +28,8 @@ class ForecastParser
       'visibility' => root['visibility'],
       'humidity' => root['humidity'] * 100,
       'temperature' => root['temperature'],
-      'sky_cover' => 'No available',
-      'cloud_base' => 'No available'
+      'sky_cover' => 'Not available',
+      'cloud_base' => 'Not available'
     }
   end
 

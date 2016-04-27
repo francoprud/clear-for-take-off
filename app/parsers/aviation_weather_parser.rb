@@ -22,12 +22,37 @@ class AviationWeatherParser
   def parse_response
     forecasts = parsed_response['response']['data']['TAF']['forecast']
     forecast = forecasts.select { |f| Time.parse(f["fcst_time_from"]).utc.to_i < time && time < Time.parse(f["fcst_time_to"]).utc.to_i }.first
-    {
+    forecast = forecasts.first unless forecast.present?
+    response = {
       'wind_speed' => forecast['wind_speed_kt'].to_f,
       'visibility' => forecast['visibility_statute_mi'].to_f,
-      'wind_bearing' => forecast['wind_dir_degrees'].to_f,
-      'sky_cover' => forecast['sky_condition']['sky_cover'],
-      'cloud_base' => forecast['sky_condition']['cloud_base_ft_agl']
+      'wind_bearing' => forecast['wind_dir_degrees'].to_f
     }
+    response.merge(calculate_sky_condition(forecast))
+    response
+  end
+
+  def calculate_sky_condition(forecast)
+    sky_conditions = forecast['sky_condition']
+    if sky_conditions.class == Hash
+      {
+        'sky_cover' => sky_conditions['sky_cover'],
+        'cloud_base' => sky_conditions['cloud_base_ft_agl']
+      }
+    else
+      conditions = forecast['sky_condition'].select { |f| f['sky_cover'] == 'OVC' }
+      if conditions.count == 0
+        {
+          'sky_cover' => sky_conditions.first['sky_cover'],
+          'cloud_base' => sky_conditions.first['cloud_base_ft_agl']
+        }
+      else
+        f = conditions.sort_by{ |h| h['cloud_base_ft_agl'].to_i }
+        {
+          'sky_cover' => f.first['sky_cover'],
+          'cloud_base' => f.first['cloud_base_ft_agl']
+        }
+      end
+    end
   end
 end

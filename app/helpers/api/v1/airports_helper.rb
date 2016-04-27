@@ -20,7 +20,24 @@ module Api::V1::AirportsHelper
     landing_tracks_by_airport[airport_code]
   end
 
+  def timezones_by(airport_code)
+    timezones_by_airport[airport_code]
+  end
+
   private
+
+  def timezones_by_airport
+    {
+      'KJFK' => '-04:00',
+      'KEWR' => '-04:00',
+      'KPHL' => '-04:00',
+      'KSFO' => '-07:00',
+      'KLGA' => '-04:00',
+      'KORD' => '-05:00',
+      'KOKC' => '-05:00',
+      'KATL' => '-04:00'
+    }
+  end
 
   def landing_tracks_by_airport
     {

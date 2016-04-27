@@ -32,27 +32,36 @@ class AviationWeatherParser
     response
   end
 
+  # forecast['sky_condition'] if it has only one element returns as a hash, if it has more than one
+  # element returns as an array of hashes
   def calculate_sky_condition(forecast)
     sky_conditions = forecast['sky_condition']
-    if sky_conditions.class == Hash
-      {
-        'sky_cover' => sky_conditions['sky_cover'],
-        'cloud_base' => sky_conditions['cloud_base_ft_agl']
-      }
-    else
-      conditions = forecast['sky_condition'].select { |f| f['sky_cover'] == 'OVC' }
-      if conditions.count == 0
+    if sky_conditions.present?
+      if sky_conditions.class == Hash
         {
-          'sky_cover' => sky_conditions.first['sky_cover'],
-          'cloud_base' => sky_conditions.first['cloud_base_ft_agl']
+          'sky_cover' => sky_conditions['sky_cover'],
+          'cloud_base' => sky_conditions['cloud_base_ft_agl']
         }
       else
-        f = conditions.sort_by{ |h| h['cloud_base_ft_agl'].to_i }
-        {
-          'sky_cover' => f.first['sky_cover'],
-          'cloud_base' => f.first['cloud_base_ft_agl']
-        }
+        conditions = forecast['sky_condition'].select { |f| f['sky_cover'] == 'OVC' }
+        if conditions.count == 0
+          {
+            'sky_cover' => sky_conditions.first['sky_cover'],
+            'cloud_base' => sky_conditions.first['cloud_base_ft_agl']
+          }
+        else
+          f = conditions.sort_by{ |h| h['cloud_base_ft_agl'].to_i }
+          {
+            'sky_cover' => f.first['sky_cover'],
+            'cloud_base' => f.first['cloud_base_ft_agl']
+          }
+        end
       end
+    else
+      {
+        'sky_cover' => 'Not available',
+        'cloud_base' => 'Not available'
+      }
     end
   end
 end

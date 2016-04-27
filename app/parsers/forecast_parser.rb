@@ -27,7 +27,9 @@ class ForecastParser
       'precipitations' => root['precipProbability'] != 0 ? 1 : 0,
       'visibility' => root['visibility'],
       'humidity' => root['humidity'] * 100,
-      'temperature' => root['temperature']
+      'temperature' => root['temperature'],
+      'sky_cover' => 'No available',
+      'cloud_base' => 'No available'
     }
   end
 

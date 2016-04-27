@@ -23,7 +23,8 @@ class SigmetParser
   end
 
   def valid_period
-    (time - (time - Time.new.utc.to_i).abs) *60 *60
+    now_in_secs = Time.zone.now.to_i
+    (now_in_secs - (6*60*60) + (time - now_in_secs))  / 3600
   end
 
   def build_url

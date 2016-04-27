@@ -25,7 +25,9 @@ class AviationWeatherParser
     {
       'wind_speed' => forecast['wind_speed_kt'].to_f,
       'visibility' => forecast['visibility_statute_mi'].to_f,
-      'wind_bearing' => forecast['wind_dir_degrees'].to_f
+      'wind_bearing' => forecast['wind_dir_degrees'].to_f,
+      'sky_cover' => forecast['sky_condition']['sky_cover'],
+      'cloud_base' => forecast['sky_condition']['cloud_base_ft_agl']
     }
   end
 end

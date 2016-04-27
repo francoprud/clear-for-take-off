@@ -5,7 +5,7 @@ class Api::V1::WeathersController < ApplicationController
   def probability
     time = date_in_seconds_from(params[:date], params[:hour], params[:offset])
     if time < Time.zone.now.to_i
-      render json: { error: "Must be a future time. Your timezone is #{calculate_offset(params[:offset])}" }
+      render json: { error: "Must be a future time. Your timezone is #{calculate_offset(params[:offset])}" }, status: :bad_request
     else
       flight_time = calculate_flight_time.round
       if time <= (Time.zone.now + 6.hours).to_i

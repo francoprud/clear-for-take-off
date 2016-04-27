@@ -299,7 +299,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 16
-    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) >= 1500)
+    if (data['sky_cover'] == 'OVC' && data['cloud_base'].to_i >= 1500)
       if (max_probability <= 1)
         reasons = [] if max_probability < 1
         reasons << 'low cloud base'
@@ -308,7 +308,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 17
-    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 1500 && Integer(data['cloud_base']) >= 1100)
+    if (data['sky_cover'] == 'OVC' && data['cloud_base'].to_i < 1500 && data['cloud_base'].to_i >= 1100)
       if (max_probability <= 2)
         reasons = [] if max_probability < 2
         reasons << 'low cloud base'
@@ -317,7 +317,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 18
-    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 1100 && Integer(data['cloud_base']) >= 500)
+    if (data['sky_cover'] == 'OVC' && data['cloud_base'].to_i < 1100 && data['cloud_base'].to_i >= 500)
       if (max_probability <= 4)
         reasons = [] if max_probability < 4
         reasons << 'low cloud base'
@@ -326,7 +326,7 @@ class Api::V1::WeathersController < ApplicationController
     end
 
     # Rule 19
-    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 500)
+    if (data['sky_cover'] == 'OVC' && data['cloud_base'].to_i < 500)
       if (max_probability <= 5)
         reasons = [] if max_probability < 5
         reasons << 'low cloud base'

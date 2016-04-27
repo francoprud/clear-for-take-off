@@ -5,7 +5,6 @@ module DateHelper
     day = date_string [6..7]
     hour = hour_string[0..1]
     minutes = hour_string[2..3]
-    byebug
     Time.new(year,month,day,hour,minutes, 0, "-02:00").utc.to_i
   end
 end

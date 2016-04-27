@@ -6,8 +6,6 @@ class Api::V1::WeathersController < ApplicationController
     time = date_in_seconds_from(params[:date], params[:hour])
     flight_time = calculate_flight_time.round
     if time <= (Time.zone.now + 6.hours).to_i
-      byebug
-      # SIGMET
       data_sigmet = SigmetParser.new(params[:origin], time).parse_information
       worst_prob = calculate_sigmet_probability(data_sigmet)
 
@@ -297,6 +295,42 @@ class Api::V1::WeathersController < ApplicationController
         reasons << 'medium humidity'
         reasons << 'low temperatures'
         max_probability = 2
+      end
+    end
+
+    # Rule 16
+    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) >= 1500)
+      if (max_probability <= 1)
+        reasons = [] if max_probability < 1
+        reasons << 'low cloud base'
+        max_probability = 1
+      end
+    end
+
+    # Rule 17
+    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 1500 && Integer(data['cloud_base']) >= 1100)
+      if (max_probability <= 2)
+        reasons = [] if max_probability < 2
+        reasons << 'low cloud base'
+        max_probability = 2
+      end
+    end
+
+    # Rule 18
+    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 1100 && Integer(data['cloud_base']) >= 500)
+      if (max_probability <= 4)
+        reasons = [] if max_probability < 4
+        reasons << 'low cloud base'
+        max_probability = 4
+      end
+    end
+
+    # Rule 19
+    if (data['sky_cover'] == 'OVC' && Integer(data['cloud_base']) < 500)
+      if (max_probability <= 5)
+        reasons = [] if max_probability < 5
+        reasons << 'low cloud base'
+        max_probability = 5
       end
     end
 

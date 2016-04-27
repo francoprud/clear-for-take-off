@@ -5,7 +5,7 @@ module DateHelper
     day = date_string [6..7]
     hour = hour_string[0..1]
     minutes = hour_string[2..3]
-    Time.new(year,month,day,hour,minutes, 0, calculate_offset(offset)).utc.to_i
+    Time.new(year,month,day,hour,minutes, 0, offset).utc.to_i
   end
 
   def calculate_offset(offset)

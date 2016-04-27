@@ -28,7 +28,7 @@ class AviationWeatherParser
       'visibility' => forecast['visibility_statute_mi'].to_f,
       'wind_bearing' => forecast['wind_dir_degrees'].to_f
     }
-    response.merge(calculate_sky_condition(forecast))
+    response.merge!(calculate_sky_condition(forecast))
     response
   end
 

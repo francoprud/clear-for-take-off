@@ -3,17 +3,38 @@ class Api::V1::WeathersController < ApplicationController
   include DateHelper
 
   def probability
-    time = date_in_seconds_from(params[:date], params[:hour])
-    flight_time = calculate_flight_time.round
-    if time <= (Time.zone.now + 6.hours).to_i
-      data_sigmet = SigmetParser.new(params[:origin], time).parse_information
-      worst_prob = calculate_sigmet_probability(data_sigmet)
+    time = date_in_seconds_from(params[:date], params[:hour], params[:offset])
+    if time < Time.zone.now.to_i
+      render json: { error: "Must be a future time. Your timezone is #{calculate_offset(params[:offset])}" }
+    else
+      flight_time = calculate_flight_time.round
+      if time <= (Time.zone.now + 6.hours).to_i
+        data_sigmet = SigmetParser.new(params[:origin], time).parse_information
+        worst_prob = calculate_sigmet_probability(data_sigmet)
 
-      unless worst_prob.present?
+        unless worst_prob.present?
+          data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
+          data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
+
+          data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+          data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+
+          data_origin_merge = data_merge(data_origin_more, data_origin)
+          data_destiny_merge = data_merge(data_destiny_more, data_destiny)
+
+          prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
+          prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
+          worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+        end
+        render json: worst_prob, status: :ok
+      elsif time <= (Time.zone.now + 24.hours).to_i
         data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
         data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
-
-        data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+        if (flight_time + time) <= (Time.zone.now + 24.hours).to_i
+          data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+        else
+          data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+        end
         data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
 
         data_origin_merge = data_merge(data_origin_more, data_origin)
@@ -22,35 +43,17 @@ class Api::V1::WeathersController < ApplicationController
         prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
         prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
         worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
-      end
-      render json: worst_prob, status: :ok
-    elsif time <= (Time.zone.now + 24.hours).to_i
-      # TAF
-      data_origin = AviationWeatherParser.new(params, params[:origin], time).parse_information
-      data_origin_more = ForecastParser.new(params, params[:origin], time).parse_information
-      if (flight_time + time) <= (Time.zone.now + 24.hours).to_i
-        data_destiny = AviationWeatherParser.new(params, params[:destiny], time + flight_time).parse_information
+
+        render json: worst_prob, status: :ok
       else
+        data_origin = ForecastParser.new(params, params[:origin], time).parse_information
         data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
+        prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
+        prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
+        worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
+
+        render json: worst_prob, status: :ok
       end
-      data_destiny_more = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
-
-      data_origin_merge = data_merge(data_origin_more, data_origin)
-      data_destiny_merge = data_merge(data_destiny_more, data_destiny)
-
-      prob_origin = calculate_all_airport_tracks_probability(data_origin_merge, params[:origin])
-      prob_destiny = calculate_all_airport_tracks_probability(data_destiny_merge, params[:destiny])
-      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
-
-      render json: worst_prob, status: :ok
-    else
-      data_origin = ForecastParser.new(params, params[:origin], time).parse_information
-      data_destiny = ForecastParser.new(params, params[:destiny], time + flight_time).parse_information
-      prob_origin = calculate_all_airport_tracks_probability(data_origin, params[:origin])
-      prob_destiny = calculate_all_airport_tracks_probability(data_destiny, params[:destiny])
-      worst_prob = calculate_worst_probability(prob_origin, prob_destiny)
-
-      render json: worst_prob, status: :ok
     end
   end
 
